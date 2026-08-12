@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatórios de Performance - Distaki Digital</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f5f5; color: #333; }
+        .container-box { max-width: 1100px; margin: 0 auto; background: white; border: 3px solid #2d5016; }
+        .header-green { background-color: #2d5016; color: white; padding: 15px; text-align: center; font-weight: bold; font-size: 18px; letter-spacing: 1px; }
+        .logo-bar { display: flex; justify-content: space-between; align-items: center; padding: 20px; background-color: #e8f0e0; border-bottom: 2px solid #2d5016; }
+        .logo-box { background: white; padding: 8px 15px; border: 1px solid #ccc; font-weight: bold; font-size: 14px; }
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white; padding: 0; }
+            .container-box { border: 1px solid #2d5016; max-width: 100%; }
+        }
+    </style>
+</head>
+<body class="py-8 px-4">
+
+    <div id="app" class="max-w-[1100px] mx-auto">
+        <div class="text-center py-12">Carregando relatórios...</div>
+    </div>
+
+    <script>
+        async function init() {
+            try {
+                const response = await fetch('data.json');
+                if (!response.ok) throw new Error("Nenhum dado encontrado. Execute o GitHub Action primeiro.");
+                const clients = await response.json();
+
+                const urlParams = new URLSearchParams(window.location.search);
+                const clientId = urlParams.get('client');
+
+                const app = document.getElementById('app');
+
+                if (!clientId) {
+                    // Lista de clientes
+                    let html = `
+                        <div class="container-box p-8">
+                            <h1 class="text-2xl font-bold text-[#2d5016] mb-6">📁 Relatórios de Desempenho - Distaki Digital</h1>
+                            <p class="text-gray-600 mb-6">Selecione o cliente para visualizar o relatório:</p>
+                            <ul class="space-y-3">
+                    `;
+                    clients.forEach(c => {
+                        html += `<li><a href="?client=${c.id}" class="block p-4 bg-gray-50 border border-gray-200 rounded-lg hover:bg-emerald-50 font-semibold text-[#2d5016] transition">📊 ${c.name}</a></li>`;
+                    });
+                    html += `</ul></div>`;
+                    app.innerHTML = html;
+                    return;
+                }
+
+                const client = clients.find(c => c.id === clientId);
+                if (!client) {
+                    app.innerHTML = `<div class="container-box p-8 text-center"><h2 class="text-xl font-bold text-red-600">Cliente não encontrado</h2><a href="index.html" class="mt-4 inline-block text-blue-600 underline">Voltar à lista</a></div>`;
+                    return;
+                }
+
+                // Renderizar relatório do cliente
+                let html = `
+                    <div class="no-print mb-6 flex justify-between items-center">
+                        <a href="index.html" class="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded font-bold text-sm">← Voltar à Lista</a>
+                        <button onclick="window.print()" class="bg-[#2d5016] text-white px-6 py-2 rounded font-bold shadow-lg">🖨️ Imprimir / Salvar PDF</button>
+                    </div>
+                    <div class="container-box">
+                        <div class="header-green">RELATÓRIO DE PERFORMANCE</div>
+                        <div class="logo-bar">
+                            <div class="logo-box">${client.name}</div>
+                            <div class="font-bold text-[#2d5016]">Cliente | ${client.name}</div>
+                            <div class="logo-box">DISTAKI DIGITAL</div>
+                        </div>
+                        <div class="p-3 bg-gray-50 border-b text-center font-bold text-sm text-gray-700">
+                            Período: ${client.period}
+                        </div>
+                `;
+
+                ['google', 'meta'].forEach(mediaKey => {
+                    const media = client[mediaKey];
+                    if (!media) return;
+                    const mediaName = mediaKey === 'google' ? 'Google Ads' : 'Meta Ads';
+                    const cor = mediaKey === 'google' ? '#2d5016' : '#e4405f';
+                    const m = media.metrics;
+
+                    const textoWpp = `*[${client.name}] - ${mediaName} - ${client.period}*
+Investimento: R$ ${m.investimento || '0'}
+${mediaKey === 'google' ? 'Conversões' : 'Mensagens'}: ${m.mensagens || '0'}
+Custo: R$ ${m.custo_mensagem || '0'}
+${mediaKey === 'google' ? 'Cliques: ' + (m.cliques || '0') : 'Impressões: ' + (m.impressoes || '0')}
+
+Link do Dashboard: ${media.link}`;
+
+                    html += `
+                        <div style="margin:20px; border:2px solid ${cor}">
+                            <div style="background:${cor}; color:white; padding:10px; font-weight:bold; display:flex; justify-content:space-between">
+                                <span>${mediaName.toUpperCase()}</span>
+                                <span style="background:white; color:${cor}; padding:2px 8px; border-radius:4px; font-size:12px">Campanha</span>
+                            </div>
+                            <div style="padding:15px">
+                                <h3 style="margin-bottom:10px; font-weight:bold; color:#333;">📸 Print do Dashboard:</h3>
+                                <img src="${media.image}" style="width:100%; border:1px solid #ddd; border-radius:4px; margin-bottom:20px;" alt="Print ${mediaName}" />
+
+                                <div class="no-print" style="background:#f0f9ff; padding:15px; border:1px solid #bae6fd; border-radius:8px">
+                                    <h4 style="margin-top:0; color:#0369a1; font-weight:bold; margin-bottom:8px;">📲 Texto para WhatsApp:</h4>
+                                    <textarea id="txt_${mediaKey}" style="width:100%; height:140px; padding:10px; font-family:monospace; font-size:12px; border:1px solid #cbd5e1; border-radius:4px;" readonly>${textoWpp}</textarea>
+                                    <button onclick="copiar('txt_${mediaKey}', 'btn_${mediaKey}')" id="btn_${mediaKey}" style="margin-top:10px; background:#0284c7; color:white; border:none; padding:8px 16px; cursor:pointer; font-weight:bold; border-radius:4px;">📋 Copiar Texto ${mediaName}</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += `
+                        <div class="text-center p-4 text-xs text-gray-400 border-t">
+                            Gerado automaticamente via GitHub Actions • Distaki Digital
+                        </div>
+                    </div>
+                `;
+
+                app.innerHTML = html;
+
+            } catch (err) {
+                document.getElementById('app').innerHTML = `
+                    <div class="container-box p-8 text-center">
+                        <h2 class="text-xl font-bold text-red-600 mb-2">Aguardando Execução</h2>
+                        <p class="text-gray-600">Os dados ainda não foram gerados. Vá até o seu repositório no GitHub, abra a aba <strong>Actions</strong> e clique em <strong>Run workflow</strong> para gerar o primeiro relatório.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function copiar(id, btnId) {
+            const txt = document.getElementById(id);
+            txt.select();
+            navigator.clipboard.writeText(txt.value);
+            const btn = document.getElementById(btnId);
+            btn.innerText = "✓ Copiado com sucesso!";
+            setTimeout(() => { btn.innerText = "📋 Copiar Texto"; }, 2000);
+        }
+
+        init();
+    </script>
+</body>
+</html>
