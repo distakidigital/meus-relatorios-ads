@@ -3,16 +3,25 @@
     "id": "mudancas-manaus",
     "name": "Mudanças Manaus",
     "recipient": "Vandir",
-    "period": "01/08/2026 a 10/08/2026",
-    "google": {
-      "metrics": {},
-      "image": "assets/mudancas-manaus_google.jpg",
-      "link": "https://lookerstudio.google.com/reporting/SEU_LINK_GOOGLE_AQUI"
-    },
-    "meta": {
-      "metrics": {},
-      "image": "assets/mudancas-manaus_meta.jpg",
-      "link": "https://lookerstudio.google.com/reporting/SEU_LINK_META_AQUI"
-    }
+    "reports": [
+      {
+        "key": "google_summary",
+        "name": "Google Ads (Resumo Mensal)",
+        "tipo": "Resumo",
+        "period": "01/08 a 10/08",
+        "metrics": {},
+        "image": "assets/mudancas-manaus_google_summary.jpg",
+        "link": "https://lookerstudio.google.com/reporting/LINK_GOOGLE_RESUMO"
+      },
+      {
+        "key": "google_closure",
+        "name": "Google Ads (Fechamento Mês Anterior)",
+        "tipo": "Fechamento",
+        "period": "Mês de Julho de 2026",
+        "metrics": {},
+        "image": "assets/mudancas-manaus_google_closure.jpg",
+        "link": "https://lookerstudio.google.com/reporting/LINK_GOOGLE_FECHAMENTO"
+      }
+    ]
   }
 ]
