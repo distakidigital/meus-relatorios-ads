@@ -28,24 +28,22 @@
         async function init() {
             try {
                 const response = await fetch('data.json');
-                if (!response.ok) throw new Error("Nenhum dado encontrado. Execute o GitHub Action primeiro.");
+                if (!response.ok) throw new Error("Nenhum dado encontrado.");
                 const clients = await response.json();
 
                 const urlParams = new URLSearchParams(window.location.search);
                 const clientId = urlParams.get('client');
-
                 const app = document.getElementById('app');
 
                 if (!clientId) {
-                    // Lista de clientes
                     let html = `
                         <div class="container-box p-8">
                             <h1 class="text-2xl font-bold text-[#2d5016] mb-6">📁 Relatórios de Desempenho - Distaki Digital</h1>
-                            <p class="text-gray-600 mb-6">Selecione o cliente para visualizar o relatório:</p>
+                            <p class="text-gray-600 mb-6">Selecione o cliente para visualizar os relatórios disponíveis:</p>
                             <ul class="space-y-3">
                     `;
                     clients.forEach(c => {
-                        html += `<li><a href="?client=${c.id}" class="block p-4 bg-gray-50 border border-gray-200 rounded-lg hover:bg-emerald-50 font-semibold text-[#2d5016] transition">📊 ${c.name}</a></li>`;
+                        html += `<li><a href="?client=${c.id}" class="block p-4 bg-gray-50 border border-gray-200 rounded-lg hover:bg-emerald-50 font-semibold text-[#2d5016] transition">📊 ${c.name} (${c.reports.length} relatórios disponíveis)</a></li>`;
                     });
                     html += `</ul></div>`;
                     app.innerHTML = html;
@@ -58,7 +56,6 @@
                     return;
                 }
 
-                // Renderizar relatório do cliente
                 let html = `
                     <div class="no-print mb-6 flex justify-between items-center">
                         <a href="index.html" class="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded font-bold text-sm">← Voltar à Lista</a>
@@ -71,40 +68,35 @@
                             <div class="font-bold text-[#2d5016]">Cliente | ${client.name}</div>
                             <div class="logo-box">DISTAKI DIGITAL</div>
                         </div>
-                        <div class="p-3 bg-gray-50 border-b text-center font-bold text-sm text-gray-700">
-                            Período: ${client.period}
-                        </div>
                 `;
 
-                ['google', 'meta'].forEach(mediaKey => {
-                    const media = client[mediaKey];
-                    if (!media) return;
-                    const mediaName = mediaKey === 'google' ? 'Google Ads' : 'Meta Ads';
-                    const cor = mediaKey === 'google' ? '#2d5016' : '#e4405f';
-                    const m = media.metrics;
+                client.reports.forEach((rep, index) => {
+                    const isGoogle = rep.key.includes('google');
+                    const cor = isGoogle ? '#2d5016' : '#e4405f';
+                    const m = rep.metrics;
 
-                    const textoWpp = `*[${client.name}] - ${mediaName} - ${client.period}*
+                    const textoWpp = `*[${client.name}] - ${rep.name} (${rep.period})]
 Investimento: R$ ${m.investimento || '0'}
-${mediaKey === 'google' ? 'Conversões' : 'Mensagens'}: ${m.mensagens || '0'}
+${isGoogle ? 'Conversões' : 'Mensagens'}: ${m.mensagens || '0'}
 Custo: R$ ${m.custo_mensagem || '0'}
-${mediaKey === 'google' ? 'Cliques: ' + (m.cliques || '0') : 'Impressões: ' + (m.impressoes || '0')}
+${isGoogle ? 'Cliques: ' + (m.cliques || '0') : 'Impressões: ' + (m.impressoes || '0')}
 
-Link do Dashboard: ${media.link}`;
+Link do Dashboard: ${rep.link}`;
 
                     html += `
                         <div style="margin:20px; border:2px solid ${cor}">
                             <div style="background:${cor}; color:white; padding:10px; font-weight:bold; display:flex; justify-content:space-between">
-                                <span>${mediaName.toUpperCase()}</span>
-                                <span style="background:white; color:${cor}; padding:2px 8px; border-radius:4px; font-size:12px">Campanha</span>
+                                <span>${rep.name.toUpperCase()}</span>
+                                <span style="background:white; color:${cor}; padding:2px 8px; border-radius:4px; font-size:12px">${rep.period}</span>
                             </div>
                             <div style="padding:15px">
                                 <h3 style="margin-bottom:10px; font-weight:bold; color:#333;">📸 Print do Dashboard:</h3>
-                                <img src="${media.image}" style="width:100%; border:1px solid #ddd; border-radius:4px; margin-bottom:20px;" alt="Print ${mediaName}" />
+                                <img src="${rep.image}" style="width:100%; border:1px solid #ddd; border-radius:4px; margin-bottom:20px;" alt="Print ${rep.name}" />
 
                                 <div class="no-print" style="background:#f0f9ff; padding:15px; border:1px solid #bae6fd; border-radius:8px">
                                     <h4 style="margin-top:0; color:#0369a1; font-weight:bold; margin-bottom:8px;">📲 Texto para WhatsApp:</h4>
-                                    <textarea id="txt_${mediaKey}" style="width:100%; height:140px; padding:10px; font-family:monospace; font-size:12px; border:1px solid #cbd5e1; border-radius:4px;" readonly>${textoWpp}</textarea>
-                                    <button onclick="copiar('txt_${mediaKey}', 'btn_${mediaKey}')" id="btn_${mediaKey}" style="margin-top:10px; background:#0284c7; color:white; border:none; padding:8px 16px; cursor:pointer; font-weight:bold; border-radius:4px;">📋 Copiar Texto ${mediaName}</button>
+                                    <textarea id="txt_${rep.key}" style="width:100%; height:140px; padding:10px; font-family:monospace; font-size:12px; border:1px solid #cbd5e1; border-radius:4px;" readonly>${textoWpp}</textarea>
+                                    <button onclick="copiar('txt_${rep.key}', 'btn_${rep.key}')" id="btn_${rep.key}" style="margin-top:10px; background:#0284c7; color:white; border:none; padding:8px 16px; cursor:pointer; font-weight:bold; border-radius:4px;">📋 Copiar Texto</button>
                                 </div>
                             </div>
                         </div>
@@ -124,7 +116,7 @@ Link do Dashboard: ${media.link}`;
                 document.getElementById('app').innerHTML = `
                     <div class="container-box p-8 text-center">
                         <h2 class="text-xl font-bold text-red-600 mb-2">Aguardando Execução</h2>
-                        <p class="text-gray-600">Os dados ainda não foram gerados. Vá até o seu repositório no GitHub, abra a aba <strong>Actions</strong> e clique em <strong>Run workflow</strong> para gerar o primeiro relatório.</p>
+                        <p class="text-gray-600">Configure os links no arquivo <code>clients.json</code> e execute o GitHub Action para gerar os relatórios.</p>
                     </div>
                 `;
             }

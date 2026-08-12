@@ -4,7 +4,9 @@
     "name": "Mudanças Manaus",
     "recipient": "Vandir",
     "active": true,
-    "link_google": "https://lookerstudio.google.com/reporting/SEU_LINK_GOOGLE_AQUI",
-    "link_meta": "https://lookerstudio.google.com/reporting/SEU_LINK_META_AQUI"
+    "google_summary": "https://lookerstudio.google.com/reporting/LINK_GOOGLE_RESUMO",
+    "google_closure": "https://lookerstudio.google.com/reporting/LINK_GOOGLE_FECHAMENTO",
+    "meta_summary": "",
+    "meta_closure": ""
   }
 ]
